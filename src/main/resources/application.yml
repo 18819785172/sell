@@ -3,7 +3,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
-    url: jdbc:mysql://192.168.3.8:3306/sell?characterEncoding=utf-8
+    url: jdbc:mysql://192.168.1.106:3306/sell?characterEncoding=utf-8
   jpa:
     show-sql: true
   jackson:
@@ -12,5 +12,12 @@ server:
   servlet:
     context-path: /sell
 
-
+wechat:
+  mpAppId: wx13afafa4ccb3cf6a
+  mpAppSecret: 382777e59df37ff564dd3831afdca485
+  mpAppIdPro: wxd898fcb01713c658
+  mchId: 1483469312
+  mchKey: C5245D70627C1F8E9964D494B0735025
+  keyPath: /var/weixin_cert/h5.p12
+  notifyUrl: http://myzhd.top/sell/pay/notify
 

@@ -1,4 +1,7 @@
 package com.imooc.service;
 
-public class PayService {
+import com.imooc.dto.OrderDTO;
+
+public interface PayService {
+    void create(OrderDTO orderDTO);
 }
