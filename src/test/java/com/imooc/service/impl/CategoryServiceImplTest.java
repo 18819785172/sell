@@ -40,7 +40,7 @@ public class CategoryServiceImplTest {
 
     @Test
     public void save() {
-        ProductCategory category = categoryService.save(new ProductCategory("男生最爱", 20));
+        ProductCategory category = categoryService.save(new ProductCategory("男生最爱", 20),2);
         Assert.assertNotNull(category);
     }
 }

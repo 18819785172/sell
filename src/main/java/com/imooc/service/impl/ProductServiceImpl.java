@@ -8,6 +8,7 @@ import com.imooc.enums.ResultEnum;
 import com.imooc.exception.SellException;
 import com.imooc.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
         return dao.findByProductStatus(ProductStatusEnum.UP.getCode());
     }
 
-    @Override
+    @Cacheable(cacheNames = "product2",key="123")
     public Page<ProductInfo> findAll(Pageable pageable) {
         return dao.findAll(pageable);
     }
@@ -71,5 +72,33 @@ public class ProductServiceImpl implements ProductService {
             productInfo.setProductStock(result);
             dao.save(productInfo);
         }
+    }
+
+    //上架
+    @Override
+    public ProductInfo onSale(String productId) {
+        ProductInfo productInfo = dao.getOne(productId);
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+        if (productInfo.getProductStatus() == ProductStatusEnum.UP.getCode()) {
+            throw new SellException(ResultEnum.PRODUCT_STATUS_ERROR);
+        }
+        productInfo.setProductStatus(ProductStatusEnum.UP.getCode());
+        return dao.save(productInfo);
+    }
+
+    //下架
+    @Override
+    public ProductInfo offSale(String productId) {
+        ProductInfo productInfo = dao.getOne(productId);
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+        if (productInfo.getProductStatus() == ProductStatusEnum.DOWN.getCode()) {
+            throw new SellException(ResultEnum.PRODUCT_STATUS_ERROR);
+        }
+        productInfo.setProductStatus(ProductStatusEnum.DOWN.getCode());
+        return dao.save(productInfo);
     }
 }

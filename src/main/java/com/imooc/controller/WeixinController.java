@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-
+/**
+ * 手动获取openid的方法
+ */
 @RestController
 @RequestMapping("/weixin")
 @Slf4j

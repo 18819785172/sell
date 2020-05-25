@@ -13,8 +13,7 @@ import com.imooc.enums.OrderStatusEnum;
 import com.imooc.enums.PayStatusEnum;
 import com.imooc.enums.ResultEnum;
 import com.imooc.exception.SellException;
-import com.imooc.service.OrderService;
-import com.imooc.service.ProductService;
+import com.imooc.service.*;
 import com.imooc.util.KeyUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +41,12 @@ public class OrderServiceImpl implements OrderService {
     private OrderDetailDao orderDetailDao;
     @Autowired
     private OrderMasterDao orderMasterDao;
+    @Autowired
+    private PayService payService;
+    @Autowired
+    private PushMassageService massageService;
+    @Autowired
+    private WebSocket webSocket;
 
     /*创建订单*/
     @Override
@@ -83,16 +88,26 @@ public class OrderServiceImpl implements OrderService {
         ).collect(Collectors.toList());
         productService.decreaseStock(cartDTOList);
 
+        //发生websocket消息
+        webSocket.sendMessage(orderDTO.getOrderId());
+
         return orderDTO;
     }
 
     /*查询单个订单*/
     @Override
     public OrderDTO findOne(String orderId) {
-        OrderMaster orderMaster = orderMasterDao.getOne(orderId);
-        if (orderMaster == null) {
+        OrderMaster orderMaster = new OrderMaster();
+        try {
+            orderMaster = orderMasterDao.getOne(orderId);
+            if (orderMaster == null) {
+                throw new SellException(ResultEnum.ORDER_NOT_EXIST);
+            }
+        } catch (Exception e) {
             throw new SellException(ResultEnum.ORDER_NOT_EXIST);
         }
+//        OrderMaster orderMaster = orderMasterDao.getOne(orderId);
+
         List<OrderDetail> orderDetailList = orderDetailDao.findByOrderId(orderId);
         if (CollectionUtils.isEmpty(orderDetailList)) {
             throw new SellException(ResultEnum.ORDERDETAIL_NOT_EXIST);
@@ -104,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDTO;
     }
 
-    /*查询订单列表*/
+    /*根据openid查询订单列表*/
     @Override
     public Page<OrderDTO> findList(String buyerOpenid, Pageable pageable) {
         Page<OrderMaster> orderMasterPage = orderMasterDao.findByBuyerOpenid(buyerOpenid, pageable);
@@ -133,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
         }
         //返回库存
         if (CollectionUtils.isEmpty(orderDTO.getOrderDetailList())) {
-            log.error("【取消订单】订单中午商品详情，orderDTO={}", orderDTO);
+            log.error("【取消订单】订单中无商品详情，orderDTO={}", orderDTO);
             throw new SellException(ResultEnum.ORDER_DETAIL_EMPTY);
         }
         List<CartDTO> cartDTOList = orderDTO.getOrderDetailList().stream()
@@ -142,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
         productService.increaseStock(cartDTOList);
         //如果已支付需要退款
         if (orderDTO.getPayStatus().equals(PayStatusEnum.SUCCESS.getCode())) {
-            //TODO
+            payService.refund(orderDTO);
         }
         return orderDTO;
     }
@@ -165,6 +180,7 @@ public class OrderServiceImpl implements OrderService {
             log.error("【更新失败】更新失败，orderMaster={}", orderMaster);
             throw new SellException(ResultEnum.ORDER_UPDATE_FAIL);
         }
+        massageService.orderStatus(orderDTO);
         return orderDTO;
     }
 
@@ -193,4 +209,17 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderDTO;
     }
+
+    /**
+     * 查询所有订单
+     * @param pageable
+     * @return
+     */
+    @Override
+    public Page<OrderDTO> findList(Pageable pageable) {
+        Page<OrderMaster> orderMasterPage = orderMasterDao.findAll(pageable);
+        List<OrderDTO> orderDTOList = OrderMaster2OrderDTOConverter.convert(orderMasterPage.getContent());
+        return new PageImpl<OrderDTO>(orderDTOList, pageable, orderMasterPage.getTotalElements());
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.imooc.controller;
 
+import com.imooc.config.WechatAccountConfig;
 import com.imooc.enums.ResultEnum;
 import com.imooc.exception.SellException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ public class WechatController {
 
     @Autowired
     private WxMpService wxMpService;
+    @Autowired
+    private WechatAccountConfig accountConfig;
 
     /**
      * url:调用的方法
@@ -47,8 +50,8 @@ public class WechatController {
             throw new SellException(ResultEnum.WECHAT_MP_ERROR.getCode(), e.getError().getErrorMsg());
         }
         String openId = wxMpOAuth2AccessToken.getOpenId();
-
-        return "redirect:" + returnUrl + "?openid=" + openId;
+        log.info("【微信网页授权】openidPro={}",openId);
+        return "redirect:" + returnUrl + "?openid="+accountConfig.getOpenIdPro();
     }
 
 }
