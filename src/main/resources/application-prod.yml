@@ -1,0 +1,32 @@
+spring:
+  freemarker:
+    suffix: .ftl
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.241.130:3306/sell?characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+  jpa:
+    show-sql: true
+  jackson:
+    default-property-inclusion: non_null    #返回前端的json数据没有为null的值
+  redis:
+    host: 192.168.241.130
+    port: 6379
+server:
+  servlet:
+    context-path: /sell
+
+wechat:
+  mpAppId: wx13afafa4ccb3cf6a
+  mpAppSecret: 382777e59df37ff564dd3831afdca485
+  mpAppIdPro: wxd898fcb01713c658                  #测试公众号不支持支付功能,需要借用别人的
+  openIdPro: oTgZpwTwnA6ZUCnR7TalCiz77wls
+  mchId: 1483469312
+  mchKey: 098F6BCD4621D373CADE4E832627B4F6
+  keyPath: /opt/weixin_cert/h5.p12
+  notifyUrl: http://myzhd.top/sell/pay/notify
+
+projecturl:
+  wechatMpAuthorize: http://myzhd.top
+  sell: http://myzhd.top
